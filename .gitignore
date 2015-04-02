@@ -1,0 +1,9 @@
+build/*
+nbproject/*
+build.xml
+manifest.mf
+
+# previous version
+src/nextgen/*
+src/primary/*
+src/realdeal/TextboxOld.java

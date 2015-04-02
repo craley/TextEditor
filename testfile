@@ -1,0 +1,83 @@
+package realdeal;
+
+import assorted.Stack;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.io.File;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import prodata.DtreeBeta;
+
+/**
+ * All files without permission to read are completely blocked from model.
+ * Hidden files are only blocked if showhidden set to false.
+ *
+ * @author chris
+ */
+public class FileWindow extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
+
+    //File current;
+    DtreeBeta<String, Fnode> ftree;
+    private static final int DIR_SIZE = 18;//font size for directory
+    private static final int FILE_SIZE = 16;//font size for file
+    private static Font DIR_FONT = new Font("SansSerif.plain", Font.BOLD, DIR_SIZE);
+    private static Font FILE_FONT = new Font("SansSerif.plain", Font.PLAIN, FILE_SIZE);
+    private static final int DIR_ASCENT = 17;//are obtained from FontMetrics
+    private static final int DIR_DESCENT = 5;
+    private static final int FILE_ASCENT = 15;
+    private static final int FILE_DESCENT = 4;
+    int px, py;//current upper left location
+    int maxx, maxy;//conceptual bounds, not view window bounds
+    int cwidth, cheight;//dims of view port
+    int scrollspeed = 15;//pixels to mouse wheel click(which is indirectly speed)
+    int gap = 5;//controls spacing between
+    int vstart = 5;//beginning of text section
+    boolean showhidden;
+    
+    TextEditor base;
+
+    public FileWindow(TextEditor ba) {
+        this(ba, "/");
+    }
+
+    public FileWindow(TextEditor ba, String start) {
+        base = ba;
+        load(start);
+        addMouseWheelListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+    }
+    /**
+     * Builds the model of file tree starting at fileName.
+     * 
+     */
+    private void load(String fileName) {
+        File file = new File(fileName);
+        if (file.exists()) {
+            ftree = new DtreeBeta<>(fileName, new Fnode(file, true));//default to open
+            if (file.isDirectory()) {
+                File[] desc = file.listFiles();//only returns null if not a directory
+                for (int f = 0; f < desc.length; f++) {
+                    if (desc[f].canRead() && (!desc[f].isHidden() || showhidden)) {//completely block anything without permission to read and hiddens if no hiddens
+                        ftree.extend(fileName, desc[f].getName(), new Fnode(desc[f]));
+                    }
+                }
+            }
+            setMax();
+            repaint();
+        } else {
+            throw new IllegalArgumentException("Invalid File. Aborting.");
+        }
+    }  }
